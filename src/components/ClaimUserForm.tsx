@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InputBox } from "./InputBox";
+import { useRouter } from "next/router";
 
 const claimUsernameFormSchema = z.object({
   username: z
@@ -18,13 +19,17 @@ export function ClaimUserForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ClaimUsernameFormData>({
     resolver: zodResolver(claimUsernameFormSchema),
   });
 
-  function handleClaimUserFormData(data: ClaimUsernameFormData) {
-    console.log(data);
+  const router = useRouter();
+
+  async function handleClaimUserFormData(data: ClaimUsernameFormData) {
+    const { username } = data;
+
+    await router.push(`/register?username=${username}`);
   }
 
   return (
@@ -33,10 +38,15 @@ export function ClaimUserForm() {
         onSubmit={handleSubmit(handleClaimUserFormData)}
         className="bg-gray-800 border border-gray-600 rounded mt-6 p-4 grid grid-cols-[1fr_160px] gap-2"
       >
-        <InputBox register={register("username")} />
+        <InputBox
+          isPrefix
+          namePrefix="cal.com"
+          register={register("username")}
+        />
         <button
           type="submit"
-          className="bg-green-600 text-gray-100 flex items-center gap-2 rounded px-2 py-1 hover:brightness-105 transition-all"
+          disabled={isSubmitting}
+          className="bg-green-600 text-gray-100 flex items-center gap-2 rounded px-2 py-1 hover:brightness-105 transition-all disabled:bg-gray-400"
         >
           Reservar usuario <ArrowRight />
         </button>
