@@ -3,9 +3,13 @@
 @tailwind utilities;
 
 body {
-    @apply bg-gray-900
+  @apply bg-gray-900;
 }
 
 .CalcWidth {
-    max-width: calc(100vw - (100vw - 1160px) / 2);
+  max-width: calc(100vw - (100vw - 1160px) / 2);
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(100%) brightness(30%) saturate(0%);
 }

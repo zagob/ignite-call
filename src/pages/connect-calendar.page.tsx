@@ -67,7 +67,7 @@ export default function ConnectCalendar() {
 
         <button
           type="submit"
-          className="text-gray-100 bg-green-600 rounded-md p-3 flex items-center justify-center gap-2 hover:brightness-125 transition-all"
+          className="text-gray-100 bg-green-600 rounded-md p-3 flex items-center justify-center gap-2 hover:brightness-125 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:brightness-100"
           disabled={!isSignedIn}
         >
           Próximo passo <ArrowRight />
