@@ -5,9 +5,11 @@ import { ArrowRight } from "phosphor-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { HeaderRegister } from "../components/register/HeaderRegister";
 import { InputBox } from "../components/InputBox";
-import { Multistep } from "../components/Multistep";
+import { Multistep } from "../components/register/Multistep";
 import { api } from "../lib/axios";
+import { Container } from "../components/register/Container";
 
 const registerFormSchema = z.object({
   username: z
@@ -57,19 +59,14 @@ export default function Register() {
   }
 
   return (
-    <div className="max-w-[572px] mx-auto mt-4 py-10">
-      <header>
-        <div className="mb-12">
-          <h1 className="font-bold text-white text-2xl">
-            Bem-vindo ao Ignite Call!
-          </h1>
-          <span className="text-gray-200 text-base">
-            Precisamos de algumas informações para criar seu perfil! Ah, você
-            pode editar essas informações depois.
-          </span>
-        </div>
+    <Container>
+      <HeaderRegister
+        title="Bem-vindo ao Ignite Call!"
+        subtitle=" Precisamos de algumas informações para criar seu perfil! Ah, você
+        pode editar essas informações depois."
+      >
         <Multistep step={4} active={1} />
-      </header>
+      </HeaderRegister>
 
       <form
         onSubmit={handleSubmit(handleRegister)}
@@ -107,6 +104,6 @@ export default function Register() {
           Próximo passo <ArrowRight />
         </button>
       </form>
-    </div>
+    </Container>
   );
 }

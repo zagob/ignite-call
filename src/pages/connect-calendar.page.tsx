@@ -1,8 +1,11 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { ArrowRight, Check } from "phosphor-react";
-import { Multistep } from "../components/Multistep";
+import { HeaderRegister } from "../components/register/HeaderRegister";
+import { Multistep } from "../components/register/Multistep";
 import { api } from "../lib/axios";
+import { Container } from "../components/register/Container";
+import { ButtonNextStep } from "../components/ButtonNextStep";
 
 export default function ConnectCalendar() {
   const session = useSession();
@@ -18,19 +21,14 @@ export default function ConnectCalendar() {
   }
 
   return (
-    <div className="max-w-[572px] mx-auto mt-4 py-10">
-      <header>
-        <div className="mb-12">
-          <h1 className="font-bold text-white text-2xl">
-            Connecte sua agenda!
-          </h1>
-          <span className="text-gray-200 text-base">
-            Conecte o seu calendário para verificar automaticamente as horas
-            ocupadas e os novos eventos á medida que são agendados.
-          </span>
-        </div>
+    <Container>
+      <HeaderRegister
+        title="Connecte sua agenda!"
+        subtitle="Conecte o seu calendário para verificar automaticamente as horas
+        ocupadas e os novos eventos á medida que são agendados."
+      >
         <Multistep step={4} active={2} />
-      </header>
+      </HeaderRegister>
 
       <div className="bg-gray-800 mt-6 p-6 flex flex-col gap-4 rounded-md border border-gray-600">
         <div className="border border-gray-600 rounded-md px-6 py-4 flex items-center justify-between">
@@ -65,14 +63,12 @@ export default function ConnectCalendar() {
           </span>
         )}
 
-        <button
+        <ButtonNextStep
+          title=" Próximo passo "
           type="submit"
-          className="text-gray-100 bg-green-600 rounded-md p-3 flex items-center justify-center gap-2 hover:brightness-125 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:brightness-100"
           disabled={!isSignedIn}
-        >
-          Próximo passo <ArrowRight />
-        </button>
+        />
       </div>
-    </div>
+    </Container>
   );
 }
