@@ -20,6 +20,9 @@ module.exports = {
       fontFamily: {
         sans: ["Roboto", "sans"],
       },
+      gridTemplateColumns: {
+        teste: "repeat(1, minmax(200px, 1fr))",
+      },
     },
   },
   plugins: [],
