@@ -2,9 +2,12 @@ import { CaretLeft, CaretRight } from "phosphor-react";
 import { ButtonHTMLAttributes, useMemo, useState } from "react";
 import { getWeekDays } from "../utils/get-week-days";
 import dayjs from "dayjs";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../lib/axios";
+import { useRouter } from "next/router";
 
 interface DayCalendarProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  day: string;
+  day: number;
 }
 
 function DayCalendar({ day, ...rest }: DayCalendarProps) {
@@ -30,10 +33,22 @@ interface CalendarWeek {
 
 type CalendarWeeks = CalendarWeek[];
 
-export function Calendar() {
+interface BlockedDates {
+  blockedWeekDays: number[];
+  blockedDates: number[];
+}
+
+interface CalendarProps {
+  selectedDate: Date | null;
+  onDateSelected: (date: Date) => void;
+}
+
+export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(() => {
     return dayjs().set("date", 1);
   });
+
+  const router = useRouter();
 
   function handlePreviousMonth() {
     const previousMonthDate = currentDate.subtract(1, "month");
@@ -52,7 +67,30 @@ export function Calendar() {
   const currentMonth = currentDate.format("MMMM");
   const currentYear = currentDate.format("YYYY");
 
+  const username = String(router.query.username);
+
+  const currentDateMonth = (currentDate.get("month") + 1)
+    .toString()
+    .padStart(2, "0");
+
+  const { data: blockedDates } = useQuery<BlockedDates>(
+    ["blocked-dates", currentDate.get("year"), currentDateMonth],
+    async () => {
+      const response = await api.get(`/users/${username}/blocked-date`, {
+        params: {
+          year: currentDate.get("year"),
+          month: currentDateMonth,
+        },
+      });
+
+      return response.data;
+    }
+  );
+
   const calendarWeeks = useMemo(() => {
+    if (!blockedDates) {
+      return [];
+    }
     const daysInMonthArray = Array.from({
       length: currentDate.daysInMonth(),
     }).map((_, index) => {
@@ -84,21 +122,35 @@ export function Calendar() {
 
     const calendarDays = [
       ...previousMonthFillArray.map((date) => ({ date, disabled: true })),
-      ...daysInMonthArray.map((date) => ({ date, disabled: false })),
+      ...daysInMonthArray.map((date) => ({
+        date,
+        disabled:
+          date.endOf("day").isBefore(new Date()) ||
+          blockedDates.blockedWeekDays.includes(date.get("day")) ||
+          blockedDates.blockedDates.includes(date.get("date")),
+      })),
       ...nextMonthFillArray.map((date) => ({ date, disabled: true })),
     ];
 
     const calendarWeeks = calendarDays.reduce<CalendarWeeks>(
       (weeks, _, i, original) => {
-        return [];
+        const isNewWeek = i % 7 === 0;
+
+        if (isNewWeek) {
+          weeks.push({
+            week: i / 7 + 1,
+            days: original.slice(i, i + 7),
+          });
+        }
+
+        return weeks;
       },
       []
     );
 
-    return calendarDays;
-  }, [currentDate]);
+    return calendarWeeks;
+  }, [currentDate, blockedDates]);
 
-  console.log(calendarWeeks);
   return (
     <div className="flex flex-col gap-6 p-6">
       <header className="flex items-center justify-between">
@@ -135,15 +187,20 @@ export function Calendar() {
           </tr>
         </thead>
         <tbody className="before:content-['.'] before:leading-3 before:block before:text-gray-800">
-          <tr>
-            <DayCalendar day="1" disabled />
-            <DayCalendar day="2" />
-            <DayCalendar day="3" />
-            <DayCalendar day="4" />
-            <DayCalendar day="5" />
-            <DayCalendar day="6" />
-            <DayCalendar day="7" />
-          </tr>
+          {calendarWeeks.map(({ week, days }) => {
+            return (
+              <tr key={week}>
+                {days.map(({ date, disabled }) => (
+                  <DayCalendar
+                    key={date.toString()}
+                    day={date.get("date")}
+                    disabled={disabled}
+                    onClick={() => onDateSelected(date.toDate())}
+                  />
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

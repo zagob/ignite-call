@@ -1,4 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
 import { CalendarBlank, Clock } from "phosphor-react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -7,6 +9,7 @@ import { Form } from "../../../components/Form";
 import { InputBox } from "../../../components/InputBox";
 import { Container } from "../../../components/register/Container";
 import { TextArea } from "../../../components/register/TextArea";
+import { api } from "../../../lib/axios";
 
 const confirmFormSchema = z.object({
   name: z.string().min(3, { message: "É necessário ao minimo 3 caracteres" }),
@@ -16,7 +19,15 @@ const confirmFormSchema = z.object({
 
 type ConfirmFormData = z.infer<typeof confirmFormSchema>;
 
-export function ConfirmStep() {
+interface ConfirmStepProps {
+  schedulingDate: Date;
+  onCancelConfirmation: () => void;
+}
+
+export function ConfirmStep({
+  schedulingDate,
+  onCancelConfirmation,
+}: ConfirmStepProps) {
   const {
     register,
     handleSubmit,
@@ -26,9 +37,28 @@ export function ConfirmStep() {
     resolver: zodResolver(confirmFormSchema),
   });
 
-  function handleConfirmScheduling(data: ConfirmFormData) {
-    console.log(data);
+  const router = useRouter();
+  const username = String(router.query.username);
+
+  async function handleConfirmScheduling(data: ConfirmFormData) {
+    try {
+      const { email, name, observations } = data;
+
+      await api.post(`/users/${username}/schedule`, {
+        name,
+        email,
+        observations,
+        date: schedulingDate,
+      });
+
+      onCancelConfirmation();
+    } catch (err) {
+      console.log(err);
+    }
   }
+
+  const describeDate = dayjs(schedulingDate).format("DD[ de ]MMMM[ de ]YYYY");
+  const describedTime = dayjs(schedulingDate).format("HH:mm[h]");
 
   return (
     <Container>
@@ -36,11 +66,11 @@ export function ConfirmStep() {
         <div className="flex items-center gap-4">
           <data className="flex items-center gap-2">
             <CalendarBlank size={20} className="text-gray-200" />
-            22 de Setembro de 2022
+            {describeDate}
           </data>
           <time className="flex items-center gap-2">
             <Clock size={20} className="text-gray-200" />
-            18:00h
+            {describedTime}
           </time>
         </div>
 
@@ -49,12 +79,7 @@ export function ConfirmStep() {
         <div className="flex flex-col gap-6">
           <label className="flex flex-col gap-2">
             <span>Nome Completo</span>
-            <InputBox
-              isPrefix
-              namePrefix="cal.com"
-              placeholder="username"
-              register={register("name")}
-            />
+            <InputBox placeholder="username" register={register("name")} />
             {errors.name && (
               <span className="text-sm text-red-400">
                 {errors.name.message}
@@ -97,6 +122,7 @@ export function ConfirmStep() {
             title="Cancelar"
             isArrowActive={false}
             style={{ background: "none", padding: "12px 25px" }}
+            onClick={onCancelConfirmation}
           />
           <ButtonNextStep
             type="submit"
